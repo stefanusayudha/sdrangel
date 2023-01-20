@@ -25,7 +25,8 @@ public:
 		ReverseGreenYellow,
         GrayGreenYellow,
         GrayGold,
-        GrayYellow
+        GrayYellow,
+        NeonBlue,
 	};
 
 	typedef std::vector<std::pair<float, QColor> > colormap;

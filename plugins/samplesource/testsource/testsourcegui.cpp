@@ -64,6 +64,8 @@ TestSourceGui::TestSourceGui(DeviceUISet *deviceUISet, QWidget* parent) :
     ui->frequencyShift->setColorMapper(ColorMapper(ColorMapper::GrayGold));
     ui->frequencyShift->setValueRange(false, 7, -9999999, 9999999);
     ui->frequencyShiftLabel->setText(QString("%1").arg(QChar(0x94, 0x03)));
+    ui->spandInput->setColorMapper(ColorMapper(ColorMapper::NeonBlue));
+    ui->spandInput->setValueRange(6,-0, 100000);
 
     displaySettings();
     makeUIConnections();
@@ -150,6 +152,12 @@ void TestSourceGui::on_frequencyShift_changed(qint64 value)
 {
     m_settings.m_frequencyShift = value;
     m_settingsKeys.append("frequencyShift");
+    sendSettings();
+}
+
+void TestSourceGui::on_spandInput_changed(qint64 value) {
+    m_settings.m_spandInput = value;
+    m_settingsKeys.append("spandInput");
     sendSettings();
 }
 
@@ -550,6 +558,7 @@ void TestSourceGui::makeUIConnections()
     QObject::connect(ui->centerFrequency, &ValueDial::changed, this, &TestSourceGui::on_centerFrequency_changed);
     QObject::connect(ui->autoCorr, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &TestSourceGui::on_autoCorr_currentIndexChanged);
     QObject::connect(ui->frequencyShift, &ValueDialZ::changed, this, &TestSourceGui::on_frequencyShift_changed);
+    QObject::connect(ui->spandInput, &ValueDial::changed, this, &TestSourceGui::on_spandInput_changed);
     QObject::connect(ui->decimation, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &TestSourceGui::on_decimation_currentIndexChanged);
     QObject::connect(ui->fcPos, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &TestSourceGui::on_fcPos_currentIndexChanged);
     QObject::connect(ui->sampleRate, &ValueDial::changed, this, &TestSourceGui::on_sampleRate_changed);

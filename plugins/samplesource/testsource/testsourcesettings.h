@@ -46,6 +46,7 @@ struct TestSourceSettings {
 
     quint64 m_centerFrequency;
 	qint32 m_frequencyShift;
+    qint32 m_spandInput;
 	quint32 m_sampleRate;
     quint32 m_log2Decim;
     fcPos_t m_fcPos;
