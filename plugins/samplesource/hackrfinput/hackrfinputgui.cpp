@@ -58,6 +58,9 @@ HackRFInputGui::HackRFInputGui(DeviceUISet *deviceUISet, QWidget* parent) :
     ui->sampleRate->setColorMapper(ColorMapper(ColorMapper::GrayGreenYellow));
     ui->sampleRate->setValueRange(8, 1000000U, 20000000U);
 
+    ui->spanFrequency->setColorMapper(ColorMapper(ColorMapper::NeonBlue));
+    ui->spanFrequency->setValueRange(6,0,100000);
+
 	connect(&m_updateTimer, SIGNAL(timeout()), this, SLOT(updateHardware()));
 	connect(&m_statusTimer, SIGNAL(timeout()), this, SLOT(updateStatus()));
 	m_statusTimer.start(500);
