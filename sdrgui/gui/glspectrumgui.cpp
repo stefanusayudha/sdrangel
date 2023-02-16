@@ -208,6 +208,7 @@ void GLSpectrumGUI::displaySettings()
     ui->linscale->blockSignals(true);
 
     ui->spanInput->setToolTip("Span Input in Mhz");
+    ui->spanInput->setValue(int (m_settings.m_spanInput / 10e5));
 
     ui->fftWindow->setCurrentIndex(m_settings.m_fftWindow);
 

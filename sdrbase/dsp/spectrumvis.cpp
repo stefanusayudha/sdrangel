@@ -61,7 +61,10 @@ SpectrumVis::SpectrumVis(Real scalef) :
         m_spanInput(0),
         m_ofs(0),
         m_powFFTDiv(1.0),
-        m_guiMessageQueue(nullptr) {
+        m_guiMessageQueue(nullptr),
+        m_lowerSnapshotBuffer(4096),
+        m_middleSnapshotBuffer(4096),
+        m_upperSnapshotBuffer(4096) {
     setObjectName("SpectrumVis");
     connect(&m_inputMessageQueue, SIGNAL(messageEnqueued()), this, SLOT(handleInputMessages()));
     applySettings(m_settings, true);
