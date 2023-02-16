@@ -400,7 +400,6 @@ void SpectrumVis::processFFT(bool positiveOnly) {
     {
         switch (m_settings.m_averagingMode) {
             case SpectrumSettings::AvgModeFixed:
-                // result not available -> return
                 if (!m_fixedAverage.nextAverage()) {
                     dataIsAvailable = false;
                 } else {
@@ -409,7 +408,6 @@ void SpectrumVis::processFFT(bool positiveOnly) {
                 }
                 break;
             case SpectrumSettings::AvgModeMax:
-                // result not available -> return
                 if (!m_max.nextMax()) {
                     dataIsAvailable = false;
                 } else {
