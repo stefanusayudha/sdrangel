@@ -382,10 +382,61 @@ void SpectrumVis::feed(const SampleVector::const_iterator &cbegin, const SampleV
     m_mutex.unlock();
 }
 
+int SpectrumVis::getSpanInput() {
+    // fixme dummy : return > 0 means need to collect upper and lower snapshot
+    return 1;
+}
+
+void SpectrumVis::requestLowerSnapshot() {
+    // fixme : dummy
+    //  modify center frequency down and send message to setting
+}
+
+void SpectrumVis::requestUpperSnapshot() {
+    // fixme : dummy
+    //  modify center frequency up and send message to setting
+}
+
 void SpectrumVis::processFFT(bool positiveOnly) {
 
+    // collect all snapshot
+    // if we need to collect more snapshot -> request next snapshot -> return;
+    // note don't forget to clear snapshot after displaying it
+    {
+        bool allSnapshotCollected = true;
+
+        if (m_middleSnapshotBuffer.empty()) {
+            // FIRST SNAPSHOT = MIDDLE SNAPSHOT
+            m_middleSnapshotBuffer = m_fftBuffer;
+
+            // get next snapshot if needed
+            if (getSpanInput() > 0) {
+                requestLowerSnapshot();
+                allSnapshotCollected = false;
+            } else {
+                allSnapshotCollected = true;
+            }
+
+        } else if(getSpanInput() > 0 && m_lowerSnapshotBuffer.empty()) {
+            // SECOND SNAPSHOT = LOWER SNAPSHOT
+            m_lowerSnapshotBuffer = m_fftBuffer;
+
+            requestUpperSnapshot();
+            allSnapshotCollected = false;
+
+        } else if (getSpanInput() > 0 && m_upperSnapshotBuffer.empty()) {
+            // THIRD SNAPSHOT = UPPER SNAPSHOT
+            m_upperSnapshotBuffer = m_fftBuffer;
+
+            allSnapshotCollected = true;
+        }
+
+        if (!allSnapshotCollected) return;
+    }
+
     // extract power spectrum and reorder buckets
-    auto fft = transformToFFT(&m_fftBuffer[0]);
+    // fixme : for now, we will only working with middle snapshot
+    auto fft = transformToFFT(&m_middleSnapshotBuffer[0]);
 
     // extract displayable data
     auto displayableData = extractDisplayableFFT(fft, positiveOnly);
@@ -395,9 +446,10 @@ void SpectrumVis::processFFT(bool positiveOnly) {
         m_psd = displayableData.psd;
     }
 
-    bool dataIsAvailable = true;
     // Check if data available
+    // If data is not available -> return / skip displaying
     {
+        bool dataIsAvailable = true;
         switch (m_settings.m_averagingMode) {
             case SpectrumSettings::AvgModeFixed:
                 if (!m_fixedAverage.nextAverage()) {
@@ -419,10 +471,8 @@ void SpectrumVis::processFFT(bool positiveOnly) {
                 dataIsAvailable = true;
                 break;
         }
+        if (!dataIsAvailable) return;
     }
-
-    // If data is not available -> skip
-    if (!dataIsAvailable) return;
 
     // Display Data
     {
@@ -462,6 +512,13 @@ void SpectrumVis::processFFT(bool positiveOnly) {
             default:
                 break;
         }
+    }
+
+    // After Displaying Side Effect -> Clear Snapshot
+    {
+        m_lowerSnapshotBuffer.clear();
+        m_middleSnapshotBuffer.clear();
+        m_upperSnapshotBuffer.clear();
     }
 
 }

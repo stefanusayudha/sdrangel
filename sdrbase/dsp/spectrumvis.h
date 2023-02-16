@@ -277,6 +277,14 @@ private:
     DisplayableData extractDisplayableFFTAvgMoving(const Complex *fft, bool positiveOnly);
     DisplayableData extractDisplayableFFTAvgFixed(const Complex *fft, bool positiveOnly);
     DisplayableData extractDisplayableFFTAvgMax(const Complex *fft, bool positiveOnly);
+
+    std::vector<Complex> m_lowerSnapshotBuffer;
+    std::vector<Complex> m_middleSnapshotBuffer;
+    std::vector<Complex> m_upperSnapshotBuffer;
+
+    int getSpanInput();
+    void requestUpperSnapshot();
+    void requestLowerSnapshot();
 private slots:
 	void handleInputMessages();
 };
