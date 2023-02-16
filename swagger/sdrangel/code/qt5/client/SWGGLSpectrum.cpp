@@ -94,6 +94,7 @@ SWGGLSpectrum::SWGGLSpectrum() {
     m_annotation_markers_isSet = false;
     calibration_points = nullptr;
     m_calibration_points_isSet = false;
+    m_spanInput = 0;
 }
 
 SWGGLSpectrum::~SWGGLSpectrum() {
@@ -168,6 +169,8 @@ SWGGLSpectrum::init() {
     m_annotation_markers_isSet = false;
     calibration_points = new QList<SWGSpectrumCalibrationPoint*>();
     m_calibration_points_isSet = false;
+    m_spanInput = 0;
+    m_spanInput_isSet= false;
 }
 
 void
@@ -310,6 +313,8 @@ SWGGLSpectrum::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&annotation_markers, pJson["annotationMarkers"], "QList", "SWGSpectrumAnnotationMarker");
     
     ::SWGSDRangel::setValue(&calibration_points, pJson["calibrationPoints"], "QList", "SWGSpectrumCalibrationPoint");
+
+    ::SWGSDRangel::setValue(&m_spanInput, pJson["spanInput"], "qint64", "");
 }
 
 QString
@@ -424,6 +429,9 @@ SWGGLSpectrum::asJsonObject() {
     }
     if(calibration_points && calibration_points->size() > 0){
         toJsonArray((QList<void*>*)calibration_points, obj, "calibrationPoints", "SWGSpectrumCalibrationPoint");
+    }
+    if (m_spanInput) {
+        obj->insert("spanInput", QJsonValue(m_spanInput));
     }
 
     return obj;
@@ -759,6 +767,14 @@ SWGGLSpectrum::setCalibrationPoints(QList<SWGSpectrumCalibrationPoint*>* calibra
     this->m_calibration_points_isSet = true;
 }
 
+qint64
+SWGGLSpectrum::getSpanInput() {
+    return this->m_spanInput;
+}
+void SWGGLSpectrum::setSpanInput(qint64 span) {
+    this->m_spanInput = span;
+    this->m_spanInput_isSet = true;
+}
 
 bool
 SWGGLSpectrum::isSet(){

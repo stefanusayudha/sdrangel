@@ -80,6 +80,7 @@ void SpectrumSettings::resetToDefaults()
     m_measurementsPosition = PositionBelow;
     m_measurementPrecision = 1;
     m_findHistogramPeaks = false;
+    m_spanInput =0;
 }
 
 QByteArray SpectrumSettings::serialize() const
@@ -133,6 +134,7 @@ QByteArray SpectrumSettings::serialize() const
     s.writeBool(47, m_findHistogramPeaks);
     s.writeBool(48, m_truncateFreqScale);
     s.writeS32(100, m_histogramMarkers.size());
+    s.writeS64(101, m_spanInput);
 
 	for (int i = 0; i < m_histogramMarkers.size(); i++) {
 		s.writeBlob(101+i, m_histogramMarkers[i].serialize());
@@ -236,6 +238,7 @@ bool SpectrumSettings::deserialize(const QByteArray& data)
         d.readS32(46, &m_measurementCenterFrequencyOffset, 0);
         d.readBool(47, &m_findHistogramPeaks, false);
         d.readBool(48, &m_truncateFreqScale, false);
+        d.readS64(101,&m_spanInput, 0);
 
 		int histogramMarkersSize;
 		d.readS32(100, &histogramMarkersSize, 0);
@@ -393,6 +396,8 @@ void SpectrumSettings::formatTo(SWGSDRangel::SWGObject *swgObject) const
 			swgSpectrum->getCalibrationPoints()->back()->setPowerAbsoluteReference(calibrationPoint.m_powerCalibratedReference);
 		}
 	}
+
+    swgSpectrum->setSpanInput(m_spanInput);
 }
 
 void SpectrumSettings::updateFrom(const QStringList& keys, const SWGSDRangel::SWGObject *swgObject)
@@ -562,6 +567,9 @@ void SpectrumSettings::updateFrom(const QStringList& keys, const SWGSDRangel::SW
 			m_calibrationPoints.back().m_powerCalibratedReference = swgCalibrationPoint->getPowerAbsoluteReference();
 		}
 	}
+    if (keys.contains("spectrumConfig.spanInput")) {
+        m_spanInput = swgSpectrum->getSpanInput();
+    }
 }
 
 int SpectrumSettings::getAveragingMaxScale(AveragingMode averagingMode)

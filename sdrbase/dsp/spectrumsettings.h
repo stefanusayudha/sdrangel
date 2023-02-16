@@ -138,6 +138,7 @@ public:
     bool m_measurementHighlight;
     MeasurementsPosition m_measurementsPosition;
     int m_measurementPrecision;
+    qint64 m_spanInput;
 
 	static const int m_log2FFTSizeMin = 6;   // 64
 	static const int m_log2FFTSizeMax = 15;  // 32k

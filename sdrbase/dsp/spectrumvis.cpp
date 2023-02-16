@@ -58,6 +58,7 @@ SpectrumVis::SpectrumVis(Real scalef) :
         m_specMax(0.0f),
         m_centerFrequency(0),
         m_sampleRate(48000),
+        m_spanInput(0),
         m_ofs(0),
         m_powFFTDiv(1.0),
         m_guiMessageQueue(nullptr) {
@@ -383,8 +384,7 @@ void SpectrumVis::feed(const SampleVector::const_iterator &cbegin, const SampleV
 }
 
 int SpectrumVis::getSpanInput() {
-    // fixme dummy : return > 0 means need to collect upper and lower snapshot
-    return 1;
+    return m_spanInput;
 }
 
 void SpectrumVis::requestLowerSnapshot() {
@@ -867,7 +867,8 @@ void SpectrumVis::applySettings(const SpectrumSettings &settings, bool force) {
              << " m_usb: " << settings.m_usb
              << " m_wsSpectrumAddress: " << settings.m_wsSpectrumAddress
              << " m_wsSpectrumPort: " << settings.m_wsSpectrumPort
-             << " force: " << force;
+             << " force: " << force
+             << " m_spanInput: " << settings.m_spanInput;
 
     if ((fftSize != m_settings.m_fftSize) || force) {
         FFTFactory *fftFactory = DSPEngine::instance()->getFFTFactory();

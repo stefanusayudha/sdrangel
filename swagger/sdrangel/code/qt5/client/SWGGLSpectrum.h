@@ -146,6 +146,8 @@ public:
     QList<SWGSpectrumCalibrationPoint*>* getCalibrationPoints();
     void setCalibrationPoints(QList<SWGSpectrumCalibrationPoint*>* calibration_points);
 
+    qint64 getSpanInput();
+    void setSpanInput(qint64 span);
 
     virtual bool isSet() override;
 
@@ -248,6 +250,9 @@ private:
 
     QList<SWGSpectrumCalibrationPoint*>* calibration_points;
     bool m_calibration_points_isSet;
+
+    qint64 m_spanInput;
+    bool m_spanInput_isSet;
 
 };
 

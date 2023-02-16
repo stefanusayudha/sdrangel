@@ -247,6 +247,8 @@ private:
     uint64_t m_centerFrequency;
     int m_sampleRate;
 
+    uint64_t m_spanInput;
+
 	Real m_ofs;
 	Real m_powFFTDiv;
 	static const Real m_mult;
