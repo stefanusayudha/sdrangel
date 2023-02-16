@@ -229,6 +229,7 @@
        </property>
        <property name="toolTip">
         <string>Decimation factor</string>
+        <string>Decimation factor</string>
        </property>
        <item>
         <property name="text">
@@ -699,14 +700,14 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_span">
      <item>
-      <widget class="QLabel" name="spandInputLabel">
+      <widget class="QLabel" name="spanInputLabel">
        <property name="text">
         <string>Span</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="ValueDial" name="spandInput" native="true">
+      <widget class="ValueDial" name="spanInput" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -731,7 +732,7 @@
         <cursorShape>PointingHandCursor</cursorShape>
        </property>
        <property name="toolTip">
-        <string>Spand Frequency</string>
+        <string>Span Frequency</string>
        </property>
       </widget>
      </item>

@@ -78,7 +78,7 @@ private slots:
     void on_centerFrequency_changed(quint64 value);
     void on_autoCorr_currentIndexChanged(int index);
     void on_frequencyShift_changed(qint64 value);
-    void on_spandInput_changed(qint64 value);
+    void on_spanInput_changed(qint64 value);
     void on_decimation_currentIndexChanged(int index);
     void on_fcPos_currentIndexChanged(int index);
     void on_sampleRate_changed(quint64 value);
