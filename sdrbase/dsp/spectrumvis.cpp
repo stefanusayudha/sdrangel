@@ -479,6 +479,26 @@ Complex *SpectrumVis::transformToFFT(Complex *data) {
 }
 
 DisplayableData SpectrumVis::extractDisplayableFFT(const Complex *fft, bool positiveOnly) {
+    switch (m_settings.m_averagingMode) {
+        case SpectrumSettings::AvgModeNone:
+            return extractDisplayableFFTAvgNone(fft, positiveOnly);
+            break;
+        case SpectrumSettings::AvgModeMoving:
+            return extractDisplayableFFTAvgMoving(fft,positiveOnly);
+            break;
+        case SpectrumSettings::AvgModeFixed:
+            return extractDisplayableFFTAvgFixed(fft,positiveOnly);
+            break;
+        case SpectrumSettings::AvgModeMax:
+            return extractDisplayableFFTAvgMax(fft,positiveOnly);
+            break;
+    }
+
+    // this should be never happen;
+    return DisplayableData{};
+}
+
+DisplayableData SpectrumVis::extractDisplayableFFTAvgNone(const Complex *fft, bool positiveOnly) {
 
     std::vector<Real> powerSpectrum(4096);
     std::vector<Real> psd(4096);
@@ -489,165 +509,198 @@ DisplayableData SpectrumVis::extractDisplayableFFT(const Complex *fft, bool posi
 
     Real specMax = 0.0f;
 
-    switch (m_settings.m_averagingMode) {
-        case SpectrumSettings::AvgModeNone:
-            m_specMax = 0.0f;
+    m_specMax = 0.0f;
 
-            if (positiveOnly) {
-                for (std::size_t i = 0; i < halfSize; i++) {
-                    c = fft[i];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-                    psd[i] = v / m_powFFTDiv;
-                    m_specMax = v > m_specMax ? v : m_specMax;
-                    v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
-                    powerSpectrum[i * 2] = v;
-                    powerSpectrum[i * 2 + 1] = v;
-                }
-            } else {
-                for (std::size_t i = 0; i < halfSize; i++) {
-                    c = fft[i + halfSize];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-                    psd[i] = v / m_powFFTDiv;
-                    m_specMax = v > m_specMax ? v : m_specMax;
-                    v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
-                    powerSpectrum[i] = v;
+    if (positiveOnly) {
+        for (std::size_t i = 0; i < halfSize; i++) {
+            c = fft[i];
+            v = c.real() * c.real() + c.imag() * c.imag();
+            psd[i] = v / m_powFFTDiv;
+            m_specMax = v > m_specMax ? v : m_specMax;
+            v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
+            powerSpectrum[i * 2] = v;
+            powerSpectrum[i * 2 + 1] = v;
+        }
+    } else {
+        for (std::size_t i = 0; i < halfSize; i++) {
+            c = fft[i + halfSize];
+            v = c.real() * c.real() + c.imag() * c.imag();
+            psd[i] = v / m_powFFTDiv;
+            m_specMax = v > m_specMax ? v : m_specMax;
+            v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
+            powerSpectrum[i] = v;
 
-                    c = fft[i];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-                    psd[i + halfSize] = v / m_powFFTDiv;
-                    m_specMax = v > m_specMax ? v : m_specMax;
-                    v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
-                    powerSpectrum[i + halfSize] = v;
-                }
-            }
-            break;
-
-        case SpectrumSettings::AvgModeMoving:
-            m_specMax = 0.0f;
-
-            if (positiveOnly) {
-                for (std::size_t i = 0; i < halfSize; i++) {
-                    c = fft[i];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-                    v = m_movingAverage.storeAndGetAvg(v, i);
-                    psd[i] = v / m_powFFTDiv;
-                    m_specMax = v > m_specMax ? v : m_specMax;
-                    v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
-                    powerSpectrum[i * 2] = v;
-                    powerSpectrum[i * 2 + 1] = v;
-                }
-            } else {
-                for (std::size_t i = 0; i < halfSize; i++) {
-                    c = fft[i + halfSize];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-                    v = m_movingAverage.storeAndGetAvg(v, i + halfSize);
-                    psd[i] = v / m_powFFTDiv;
-                    m_specMax = v > m_specMax ? v : m_specMax;
-                    v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
-                    powerSpectrum[i] = v;
-
-                    c = fft[i];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-                    v = m_movingAverage.storeAndGetAvg(v, i);
-                    psd[i + halfSize] = v / m_powFFTDiv;
-                    m_specMax = v > m_specMax ? v : m_specMax;
-                    v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
-                    powerSpectrum[i + halfSize] = v;
-                }
-            }
-
-            break;
-
-        case SpectrumSettings::AvgModeFixed:
-            double avg;
-
-            if (positiveOnly) {
-                for (std::size_t i = 0; i < halfSize; i++) {
-                    c = fft[i];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-
-                    // result available
-                    if (m_fixedAverage.storeAndGetAvg(avg, v, i)) {
-                        psd[i] = avg / m_powFFTDiv;
-                        specMax = avg > specMax ? avg : specMax;
-                        avg = m_settings.m_linear ? avg / m_powFFTDiv : m_mult * log2f(avg) + m_ofs;
-                        powerSpectrum[i * 2] = avg;
-                        powerSpectrum[i * 2 + 1] = avg;
-                    }
-                }
-            } else {
-                for (std::size_t i = 0; i < halfSize; i++) {
-                    c = fft[i + halfSize];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-
-                    // result available
-                    if (m_fixedAverage.storeAndGetAvg(avg, v, i + halfSize)) {
-                        psd[i] = avg / m_powFFTDiv;
-                        specMax = avg > specMax ? avg : specMax;
-                        avg = m_settings.m_linear ? avg / m_powFFTDiv : m_mult * log2f(avg) + m_ofs;
-                        powerSpectrum[i] = avg;
-                    }
-
-                    c = fft[i];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-
-                    // result available
-                    if (m_fixedAverage.storeAndGetAvg(avg, v, i)) {
-                        psd[i + halfSize] = avg / m_powFFTDiv;
-                        specMax = avg > specMax ? avg : specMax;
-                        avg = m_settings.m_linear ? avg / m_powFFTDiv : m_mult * log2f(avg) + m_ofs;
-                        powerSpectrum[i + halfSize] = avg;
-                    }
-                }
-            }
-            break;
-
-        case SpectrumSettings::AvgModeMax:
-            double max;
-
-            if (positiveOnly) {
-                for (std::size_t i = 0; i < halfSize; i++) {
-                    c = fft[i];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-
-                    // result available
-                    if (m_max.storeAndGetMax(max, v, i)) {
-                        psd[i] = max / m_powFFTDiv;
-                        specMax = max > specMax ? max : specMax;
-                        max = m_settings.m_linear ? max / m_powFFTDiv : m_mult * log2f(max) + m_ofs;
-                        powerSpectrum[i * 2] = max;
-                        powerSpectrum[i * 2 + 1] = max;
-                    }
-                }
-            } else {
-                for (std::size_t i = 0; i < halfSize; i++) {
-                    c = fft[i + halfSize];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-
-                    // result available
-                    if (m_max.storeAndGetMax(max, v, i + halfSize)) {
-                        psd[i] = max / m_powFFTDiv;
-                        specMax = max > specMax ? max : specMax;
-                        max = m_settings.m_linear ? max / m_powFFTDiv : m_mult * log2f(max) + m_ofs;
-                        powerSpectrum[i] = max;
-                    }
-
-                    c = fft[i];
-                    v = c.real() * c.real() + c.imag() * c.imag();
-
-                    // result available
-                    if (m_max.storeAndGetMax(max, v, i)) {
-                        psd[i + halfSize] = max / m_powFFTDiv;
-                        specMax = max > specMax ? max : specMax;
-                        max = m_settings.m_linear ? max / m_powFFTDiv : m_mult * log2f(max) + m_ofs;
-                        powerSpectrum[i + halfSize] = max;
-                    }
-                }
-            }
-            break;
+            c = fft[i];
+            v = c.real() * c.real() + c.imag() * c.imag();
+            psd[i + halfSize] = v / m_powFFTDiv;
+            m_specMax = v > m_specMax ? v : m_specMax;
+            v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
+            powerSpectrum[i + halfSize] = v;
+        }
     }
 
     return DisplayableData{.powerSpectrum = powerSpectrum, .psd = psd, .specMax = specMax};
+
+}
+
+DisplayableData SpectrumVis::extractDisplayableFFTAvgMoving(const Complex *fft, bool positiveOnly) {
+
+    std::vector<Real> powerSpectrum(4096);
+    std::vector<Real> psd(4096);
+
+    Complex c;
+    Real v;
+    std::size_t halfSize = m_settings.m_fftSize / 2;
+
+    Real specMax = 0.0f;
+
+    m_specMax = 0.0f;
+
+    if (positiveOnly) {
+        for (std::size_t i = 0; i < halfSize; i++) {
+            c = fft[i];
+            v = c.real() * c.real() + c.imag() * c.imag();
+            v = m_movingAverage.storeAndGetAvg(v, i);
+            psd[i] = v / m_powFFTDiv;
+            m_specMax = v > m_specMax ? v : m_specMax;
+            v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
+            powerSpectrum[i * 2] = v;
+            powerSpectrum[i * 2 + 1] = v;
+        }
+    } else {
+        for (std::size_t i = 0; i < halfSize; i++) {
+            c = fft[i + halfSize];
+            v = c.real() * c.real() + c.imag() * c.imag();
+            v = m_movingAverage.storeAndGetAvg(v, i + halfSize);
+            psd[i] = v / m_powFFTDiv;
+            m_specMax = v > m_specMax ? v : m_specMax;
+            v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
+            powerSpectrum[i] = v;
+
+            c = fft[i];
+            v = c.real() * c.real() + c.imag() * c.imag();
+            v = m_movingAverage.storeAndGetAvg(v, i);
+            psd[i + halfSize] = v / m_powFFTDiv;
+            m_specMax = v > m_specMax ? v : m_specMax;
+            v = m_settings.m_linear ? v / m_powFFTDiv : m_mult * log2f(v) + m_ofs;
+            powerSpectrum[i + halfSize] = v;
+        }
+    }
+
+    return DisplayableData{.powerSpectrum = powerSpectrum, .psd = psd, .specMax = specMax};
+
+}
+
+DisplayableData SpectrumVis::extractDisplayableFFTAvgFixed(const Complex *fft, bool positiveOnly) {
+    std::vector<Real> powerSpectrum(4096);
+    std::vector<Real> psd(4096);
+
+    Complex c;
+    Real v;
+    std::size_t halfSize = m_settings.m_fftSize / 2;
+
+    Real specMax = 0.0f;
+
+    double avg;
+
+    if (positiveOnly) {
+        for (std::size_t i = 0; i < halfSize; i++) {
+            c = fft[i];
+            v = c.real() * c.real() + c.imag() * c.imag();
+
+            // result available
+            if (m_fixedAverage.storeAndGetAvg(avg, v, i)) {
+                psd[i] = avg / m_powFFTDiv;
+                specMax = avg > specMax ? avg : specMax;
+                avg = m_settings.m_linear ? avg / m_powFFTDiv : m_mult * log2f(avg) + m_ofs;
+                powerSpectrum[i * 2] = avg;
+                powerSpectrum[i * 2 + 1] = avg;
+            }
+        }
+    } else {
+        for (std::size_t i = 0; i < halfSize; i++) {
+            c = fft[i + halfSize];
+            v = c.real() * c.real() + c.imag() * c.imag();
+
+            // result available
+            if (m_fixedAverage.storeAndGetAvg(avg, v, i + halfSize)) {
+                psd[i] = avg / m_powFFTDiv;
+                specMax = avg > specMax ? avg : specMax;
+                avg = m_settings.m_linear ? avg / m_powFFTDiv : m_mult * log2f(avg) + m_ofs;
+                powerSpectrum[i] = avg;
+            }
+
+            c = fft[i];
+            v = c.real() * c.real() + c.imag() * c.imag();
+
+            // result available
+            if (m_fixedAverage.storeAndGetAvg(avg, v, i)) {
+                psd[i + halfSize] = avg / m_powFFTDiv;
+                specMax = avg > specMax ? avg : specMax;
+                avg = m_settings.m_linear ? avg / m_powFFTDiv : m_mult * log2f(avg) + m_ofs;
+                powerSpectrum[i + halfSize] = avg;
+            }
+        }
+    }
+
+    return DisplayableData{.powerSpectrum = powerSpectrum, .psd = psd, .specMax = specMax};
+
+}
+
+DisplayableData SpectrumVis::extractDisplayableFFTAvgMax(const Complex *fft, bool positiveOnly) {
+    std::vector<Real> powerSpectrum(4096);
+    std::vector<Real> psd(4096);
+
+    Complex c;
+    Real v;
+    std::size_t halfSize = m_settings.m_fftSize / 2;
+
+    Real specMax = 0.0f;
+
+    double max;
+
+    if (positiveOnly) {
+        for (std::size_t i = 0; i < halfSize; i++) {
+            c = fft[i];
+            v = c.real() * c.real() + c.imag() * c.imag();
+
+            // result available
+            if (m_max.storeAndGetMax(max, v, i)) {
+                psd[i] = max / m_powFFTDiv;
+                specMax = max > specMax ? max : specMax;
+                max = m_settings.m_linear ? max / m_powFFTDiv : m_mult * log2f(max) + m_ofs;
+                powerSpectrum[i * 2] = max;
+                powerSpectrum[i * 2 + 1] = max;
+            }
+        }
+    } else {
+        for (std::size_t i = 0; i < halfSize; i++) {
+            c = fft[i + halfSize];
+            v = c.real() * c.real() + c.imag() * c.imag();
+
+            // result available
+            if (m_max.storeAndGetMax(max, v, i + halfSize)) {
+                psd[i] = max / m_powFFTDiv;
+                specMax = max > specMax ? max : specMax;
+                max = m_settings.m_linear ? max / m_powFFTDiv : m_mult * log2f(max) + m_ofs;
+                powerSpectrum[i] = max;
+            }
+
+            c = fft[i];
+            v = c.real() * c.real() + c.imag() * c.imag();
+
+            // result available
+            if (m_max.storeAndGetMax(max, v, i)) {
+                psd[i + halfSize] = max / m_powFFTDiv;
+                specMax = max > specMax ? max : specMax;
+                max = m_settings.m_linear ? max / m_powFFTDiv : m_mult * log2f(max) + m_ofs;
+                powerSpectrum[i + halfSize] = max;
+            }
+        }
+    }
+
+    return DisplayableData{.powerSpectrum = powerSpectrum, .psd = psd, .specMax = specMax};
+
 }
 
 void SpectrumVis::getZoomedPSDCopy(std::vector<Real> &copy) const {

@@ -273,7 +273,10 @@ private:
 
     Complex *transformToFFT(Complex* data);
     DisplayableData extractDisplayableFFT(const Complex *fftResult, bool positiveOnly);
-
+    DisplayableData extractDisplayableFFTAvgNone(const Complex *fft, bool positiveOnly);
+    DisplayableData extractDisplayableFFTAvgMoving(const Complex *fft, bool positiveOnly);
+    DisplayableData extractDisplayableFFTAvgFixed(const Complex *fft, bool positiveOnly);
+    DisplayableData extractDisplayableFFTAvgMax(const Complex *fft, bool positiveOnly);
 private slots:
 	void handleInputMessages();
 };
