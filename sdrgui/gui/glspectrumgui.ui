@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>630</width>
-    <height>228</height>
+    <height>286</height>
    </rect>
   </property>
   <property name="font">
@@ -20,21 +20,6 @@
    <string>Spectrum</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="spacing">
-    <number>1</number>
-   </property>
-   <property name="leftMargin">
-    <number>1</number>
-   </property>
-   <property name="topMargin">
-    <number>1</number>
-   </property>
-   <property name="rightMargin">
-    <number>1</number>
-   </property>
-   <property name="bottomMargin">
-    <number>1</number>
-   </property>
    <item>
     <layout class="QHBoxLayout" name="Line1Layout">
      <property name="spacing">
@@ -1172,6 +1157,13 @@
         <string/>
        </property>
       </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="Line7Layout" stretch="0">
+     <item>
+      <widget class="QSpinBox" name="spanInput"/>
      </item>
     </layout>
    </item>

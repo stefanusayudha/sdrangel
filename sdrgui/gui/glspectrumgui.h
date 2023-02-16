@@ -127,6 +127,7 @@ private slots:
     void on_gotoMarker_currentIndexChanged(int index);
 
     void on_measure_clicked(bool checked);
+    void on_spanInput_valueChanged(int arg1);
 
 	void handleInputMessages();
     void openWebsocketSpectrumSettingsDialog(const QPoint& p);

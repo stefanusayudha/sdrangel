@@ -56,6 +56,7 @@ GLSpectrumGUI::GLSpectrumGUI(QWidget* parent) :
     ui->setupUi(this);
 
     // Use the custom flow layout for the 3 main horizontal layouts (lines)
+    ui->verticalLayout->removeItem(ui->Line7Layout);
     ui->verticalLayout->removeItem(ui->Line6Layout);
     ui->verticalLayout->removeItem(ui->Line5Layout);
     ui->verticalLayout->removeItem(ui->Line4Layout);
@@ -69,6 +70,7 @@ GLSpectrumGUI::GLSpectrumGUI(QWidget* parent) :
     flowLayout->addItem(ui->Line4Layout);
     flowLayout->addItem(ui->Line5Layout);
     flowLayout->addItem(ui->Line6Layout);
+    flowLayout->addItem(ui->Line7Layout);
     ui->verticalLayout->addItem(flowLayout);
 
     on_linscale_toggled(false);
@@ -204,6 +206,8 @@ void GLSpectrumGUI::displaySettings()
     ui->averaging->blockSignals(true);
     ui->averagingMode->blockSignals(true);
     ui->linscale->blockSignals(true);
+
+    ui->spanInput->setToolTip("Span Input in Mhz");
 
     ui->fftWindow->setCurrentIndex(m_settings.m_fftWindow);
 
@@ -1070,6 +1074,11 @@ void GLSpectrumGUI::on_measure_clicked(bool checked)
     connect(&measurementsDialog, &SpectrumMeasurementsDialog::updateMeasurements, this, &GLSpectrumGUI::updateMeasurements);
 
     measurementsDialog.exec();
+}
+
+void GLSpectrumGUI::on_spanInput_valueChanged(int arg1){
+    m_settings.m_spanInput = qint64 (arg1 * 10e5);
+    applySettings();
 }
 
 void GLSpectrumGUI::updateMeasurements()
