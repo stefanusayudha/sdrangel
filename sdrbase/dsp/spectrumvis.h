@@ -41,6 +41,14 @@ namespace SWGSDRangel {
     class SWGSuccessResponse;
 };
 
+struct DisplayableData {
+    std::vector<Real> powerSpectrum;
+    std::vector<Real> psd;
+
+    // only available for avg mode fixed and avg mode max
+    Real specMax;
+};
+
 class SDRBASE_API SpectrumVis : public QObject, public BasebandSampleSink {
     Q_OBJECT
 public:
@@ -262,6 +270,9 @@ private:
             SpectrumSettings& settings,
             const QStringList& spectrumSettingsKeys,
             SWGSDRangel::SWGGLSpectrum& response);
+
+    Complex *transformToFFT(Complex* data);
+    DisplayableData extractDisplayableFFT(const Complex *fftResult, bool positiveOnly);
 
 private slots:
 	void handleInputMessages();
