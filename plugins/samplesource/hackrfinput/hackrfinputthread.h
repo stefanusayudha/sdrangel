@@ -64,6 +64,10 @@ private:
 	void callbackIQ(const qint8* buf, qint32 len);
 	void callbackQI(const qint8* buf, qint32 len);
 	static int rx_callback(hackrf_transfer* transfer);
+
+    hackrf_error startHackRF();
+
+    bool hackRFIsStreaming();
 };
 
 #endif // INCLUDE_HACKRFINPUTTHREAD_H
