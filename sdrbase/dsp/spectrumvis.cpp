@@ -387,8 +387,7 @@ void SpectrumVis::feed(const SampleVector::const_iterator &cbegin, const SampleV
 }
 
 qint64 SpectrumVis::getSpanInput() {
-    // fixme : dummy
-    return 100e6;
+    return m_settings.m_spanInput;
 }
 
 qint64 SpectrumVis::getBandwidth() {
