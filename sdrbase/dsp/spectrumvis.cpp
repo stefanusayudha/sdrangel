@@ -398,21 +398,23 @@ qint64 SpectrumVis::getBandwidth() {
 }
 
 void SpectrumVis::requestLowerSnapshot() {
+    // fixme : send new setting to sampling source
     // stop spectrum vis
-    stop();
-
-    // push request message
-    auto msg = MsgRequestLowerSnapshot::create(m_settings.m_spanInput * 1e3);
-    this->pushMessage(msg);
+//    stop();
+//
+//    // push request message
+//    auto msg = MsgRequestLowerSnapshot::create(m_settings.m_spanInput * 1e3);
+//    this->pushMessage(msg);
 }
 
 void SpectrumVis::requestUpperSnapshot() {
+    // fixme : send new setting to sampling source
     // stop spectrum vis
-    stop();
-
-    // push request message
-    auto msg = MsgRequestUpperSnapshot::create(m_settings.m_spanInput * 1e3);
-    this->pushMessage(msg);
+//    stop();
+//
+//    // push request message
+//    auto msg = MsgRequestUpperSnapshot::create(m_settings.m_spanInput * 1e3);
+//    this->pushMessage(msg);
 }
 
 void SpectrumVis::processFFT(bool positiveOnly) {
