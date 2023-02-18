@@ -481,8 +481,8 @@ void SpectrumVis::processFFT(bool positiveOnly) {
         // copy power spectrum
 
         std::copy(
-                displayableLower.powerSpectrum.begin() + m_settings.m_fftSize - spanDataExpectedWidth,
-                displayableLower.powerSpectrum.end(),
+                displayableLower.powerSpectrum.begin(),
+                displayableLower.powerSpectrum.begin() + spanDataExpectedWidth,
                 powerSpectrum.begin()
         );
         std::copy(
@@ -491,15 +491,15 @@ void SpectrumVis::processFFT(bool positiveOnly) {
                 powerSpectrum.begin() + spanDataExpectedWidth
         );
         std::copy(
-                displayableUpper.powerSpectrum.begin(),
-                displayableUpper.powerSpectrum.begin() + spanDataExpectedWidth,
+                displayableUpper.powerSpectrum.begin() + m_settings.m_fftSize - spanDataExpectedWidth ,
+                displayableUpper.powerSpectrum.begin() + m_settings.m_fftSize,
                 powerSpectrum.begin() + spanDataExpectedWidth + m_settings.m_fftSize
         );
 
         // copy psd
         std::copy(
-                displayableLower.psd.begin() + m_settings.m_fftSize - spanDataExpectedWidth,
-                displayableLower.psd.end(),
+                displayableLower.psd.begin(),
+                displayableLower.psd.begin() + spanDataExpectedWidth,
                 psd.begin()
         );
         std::copy(
@@ -508,8 +508,8 @@ void SpectrumVis::processFFT(bool positiveOnly) {
                 psd.begin() + spanDataExpectedWidth
         );
         std::copy(
-                displayableUpper.psd.begin(),
-                displayableUpper.psd.begin() + spanDataExpectedWidth,
+                displayableUpper.psd.begin() + m_settings.m_fftSize - spanDataExpectedWidth,
+                displayableUpper.psd.begin() + m_settings.m_fftSize,
                 psd.begin() + spanDataExpectedWidth + m_settings.m_fftSize
         );
 
