@@ -386,8 +386,14 @@ void SpectrumVis::feed(const SampleVector::const_iterator &cbegin, const SampleV
     m_mutex.unlock();
 }
 
-int SpectrumVis::getSpanInput() {
-    return m_spanInput;
+qint64 SpectrumVis::getSpanInput() {
+    // fixme : dummy
+    return 100e6;
+}
+
+qint64 SpectrumVis::getBandwidth() {
+    // fixme : dummy
+    return 200e6;
 }
 
 void SpectrumVis::requestLowerSnapshot() {
@@ -420,7 +426,7 @@ void SpectrumVis::processFFT(bool positiveOnly) {
                 allSnapshotCollected = true;
             }
 
-        } else if(getSpanInput() > 0 && m_lowerSnapshotBuffer.empty()) {
+        } else if (getSpanInput() > 0 && m_lowerSnapshotBuffer.empty()) {
             // SECOND SNAPSHOT = LOWER SNAPSHOT
             m_lowerSnapshotBuffer = m_fftBuffer;
 
@@ -438,15 +444,72 @@ void SpectrumVis::processFFT(bool positiveOnly) {
     }
 
     // extract power spectrum and reorder buckets
-    // fixme : for now, we will only working with middle snapshot
-    auto fft = transformToFFT(&m_middleSnapshotBuffer[0]);
+    // span snapshot size n% of extra snapshot
 
-    // extract displayable data
-    auto displayableData = extractDisplayableFFT(fft, positiveOnly);
-    // fixme: Side Effect, Store powerSpectrum and psd to global buffer because other functions need it
+    Real specMax;
+    long spanDataExpectedWidth = m_settings.m_fftSize * getSpanInput() / getBandwidth() ;
+
+    // combining snapshots
     {
-        m_powerSpectrum = displayableData.powerSpectrum;
-        m_psd = displayableData.psd;
+        DisplayableData displayableLower;
+        DisplayableData displayableMiddle;
+        DisplayableData displayableUpper;
+
+        Complex *lowerFFT = transformToFFT(&m_lowerSnapshotBuffer[0]);
+        displayableLower = extractDisplayableFFT(lowerFFT, positiveOnly);
+
+        Complex *middleFFT = transformToFFT(&m_middleSnapshotBuffer[0]);
+        displayableMiddle = extractDisplayableFFT(middleFFT, positiveOnly);
+
+        Complex *upperFFT = transformToFFT(&m_upperSnapshotBuffer[0]);
+        displayableUpper = extractDisplayableFFT(upperFFT, positiveOnly);
+
+        std::vector<Real> powerSpectrum(m_settings.m_fftSize * 6);
+        std::vector<Real> psd(m_settings.m_fftSize * 6);
+
+        // copy power spectrum
+
+        std::copy(
+                displayableLower.powerSpectrum.begin() + m_settings.m_fftSize - spanDataExpectedWidth,
+                displayableLower.powerSpectrum.end(),
+                powerSpectrum.begin()
+        );
+        std::copy(
+                displayableMiddle.powerSpectrum.begin(),
+                displayableMiddle.powerSpectrum.end(),
+                powerSpectrum.begin() + spanDataExpectedWidth
+        );
+        std::copy(
+                displayableUpper.powerSpectrum.begin(),
+                displayableUpper.powerSpectrum.begin() + spanDataExpectedWidth,
+                powerSpectrum.begin() + spanDataExpectedWidth + m_settings.m_fftSize
+        );
+
+        // copy psd
+        std::copy(
+                displayableLower.psd.begin() + m_settings.m_fftSize - spanDataExpectedWidth,
+                displayableLower.psd.end(),
+                psd.begin()
+        );
+        std::copy(
+                displayableMiddle.psd.begin(),
+                displayableMiddle.psd.end(),
+                psd.begin() + spanDataExpectedWidth
+        );
+        std::copy(
+                displayableUpper.psd.begin(),
+                displayableUpper.psd.begin() + spanDataExpectedWidth,
+                psd.begin() + spanDataExpectedWidth + m_settings.m_fftSize
+        );
+
+        // use spec max from last snapshot
+        specMax = displayableUpper.specMax;
+
+        // fixme: Side Effect, Store powerSpectrum and psd to global buffer because other functions need it
+        {
+            m_powerSpectrum = powerSpectrum;
+            m_psd = psd;
+        }
     }
 
     // Check if data available
@@ -459,7 +522,7 @@ void SpectrumVis::processFFT(bool positiveOnly) {
                     dataIsAvailable = false;
                 } else {
                     dataIsAvailable = true;
-                    m_specMax = displayableData.specMax;
+                    m_specMax = specMax;
                 }
                 break;
             case SpectrumSettings::AvgModeMax:
@@ -467,7 +530,7 @@ void SpectrumVis::processFFT(bool positiveOnly) {
                     dataIsAvailable = false;
                 } else {
                     dataIsAvailable = true;
-                    m_specMax = displayableData.specMax;
+                    m_specMax = specMax;
                 }
                 break;
             default:
@@ -482,12 +545,13 @@ void SpectrumVis::processFFT(bool positiveOnly) {
         int fftMin = (m_frequencyZoomFactor == 1.0f) ?
                      0 : (m_frequencyZoomPos - (0.5f / m_frequencyZoomFactor)) * m_settings.m_fftSize;
         int fftMax = (m_frequencyZoomFactor == 1.0f) ?
-                     m_settings.m_fftSize : (m_frequencyZoomPos + (0.5f / m_frequencyZoomFactor)) * m_settings.m_fftSize;
+                     m_settings.m_fftSize : (m_frequencyZoomPos + (0.5f / m_frequencyZoomFactor)) *
+                                            m_settings.m_fftSize;
 
         if (m_glSpectrum) {
             m_glSpectrum->newSpectrum(
-                    &displayableData.powerSpectrum[fftMin],
-                    fftMax - fftMin,
+                    &m_powerSpectrum[fftMin],
+                    (fftMax - fftMin) + spanDataExpectedWidth * 2,
                     m_settings.m_fftSize
             );
         }
@@ -495,8 +559,8 @@ void SpectrumVis::processFFT(bool positiveOnly) {
         // web socket spectrum connections
         if (m_wsSpectrum.socketOpened()) {
             m_wsSpectrum.newSpectrum(
-                    displayableData.powerSpectrum,
-                    m_settings.m_fftSize,
+                    m_powerSpectrum,
+                    m_settings.m_fftSize + spanDataExpectedWidth * 2,
                     m_centerFrequency,
                     m_sampleRate,
                     m_settings.m_linear,
@@ -542,13 +606,13 @@ DisplayableData SpectrumVis::extractDisplayableFFT(const Complex *fft, bool posi
             return extractDisplayableFFTAvgNone(fft, positiveOnly);
             break;
         case SpectrumSettings::AvgModeMoving:
-            return extractDisplayableFFTAvgMoving(fft,positiveOnly);
+            return extractDisplayableFFTAvgMoving(fft, positiveOnly);
             break;
         case SpectrumSettings::AvgModeFixed:
-            return extractDisplayableFFTAvgFixed(fft,positiveOnly);
+            return extractDisplayableFFTAvgFixed(fft, positiveOnly);
             break;
         case SpectrumSettings::AvgModeMax:
-            return extractDisplayableFFTAvgMax(fft,positiveOnly);
+            return extractDisplayableFFTAvgMax(fft, positiveOnly);
             break;
     }
 

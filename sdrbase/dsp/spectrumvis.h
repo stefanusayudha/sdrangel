@@ -284,7 +284,8 @@ private:
     std::vector<Complex> m_middleSnapshotBuffer;
     std::vector<Complex> m_upperSnapshotBuffer;
 
-    int getSpanInput();
+    qint64 getBandwidth();
+    qint64 getSpanInput();
     void requestUpperSnapshot();
     void requestLowerSnapshot();
 private slots:
