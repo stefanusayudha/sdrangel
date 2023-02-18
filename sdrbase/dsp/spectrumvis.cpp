@@ -391,8 +391,7 @@ qint64 SpectrumVis::getSpanInput() {
 }
 
 qint64 SpectrumVis::getBandwidth() {
-    // fixme : dummy
-    return 200e6;
+    return m_sampleRate;
 }
 
 void SpectrumVis::requestLowerSnapshot() {
