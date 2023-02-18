@@ -1163,7 +1163,26 @@
    <item>
     <layout class="QHBoxLayout" name="Line7Layout" stretch="0">
      <item>
-      <widget class="QSpinBox" name="spanInput"/>
+      <widget class="QSpinBox" name="spanInput">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>70</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximum">
+        <number>200</number>
+       </property>
+       <property name="singleStep">
+        <number>10</number>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
