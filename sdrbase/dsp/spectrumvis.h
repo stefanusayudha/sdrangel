@@ -37,7 +37,9 @@ class GLSpectrumInterface;
 
 namespace SWGSDRangel {
     class SWGGLSpectrum;
+
     class SWGSpectrumServer;
+
     class SWGSuccessResponse;
 };
 
@@ -50,16 +52,17 @@ struct DisplayableData {
 };
 
 class SDRBASE_API SpectrumVis : public QObject, public BasebandSampleSink {
-    Q_OBJECT
+Q_OBJECT
 public:
     class SDRBASE_API MsgConfigureSpectrumVis : public Message {
-        MESSAGE_CLASS_DECLARATION
+    MESSAGE_CLASS_DECLARATION
 
     public:
-        const SpectrumSettings& getSettings() const { return m_settings; }
+        const SpectrumSettings &getSettings() const { return m_settings; }
+
         bool getForce() const { return m_force; }
 
-        static MsgConfigureSpectrumVis* create(const SpectrumSettings& settings, bool force) {
+        static MsgConfigureSpectrumVis *create(const SpectrumSettings &settings, bool force) {
             return new MsgConfigureSpectrumVis(settings, force);
         }
 
@@ -67,20 +70,19 @@ public:
         SpectrumSettings m_settings;
         bool m_force;
 
-        MsgConfigureSpectrumVis(const SpectrumSettings& settings, bool force) :
-            Message(),
-            m_settings(settings),
-            m_force(force)
-        { }
+        MsgConfigureSpectrumVis(const SpectrumSettings &settings, bool force) :
+                Message(),
+                m_settings(settings),
+                m_force(force) {}
     };
 
     class SDRBASE_API MsgStartStop : public Message {
-        MESSAGE_CLASS_DECLARATION
+    MESSAGE_CLASS_DECLARATION
 
     public:
         bool getStartStop() const { return m_startStop; }
 
-        static MsgStartStop* create(bool startStop) {
+        static MsgStartStop *create(bool startStop) {
             return new MsgStartStop(startStop);
         }
 
@@ -88,19 +90,17 @@ public:
         bool m_startStop;
 
         MsgStartStop(bool startStop) :
-            Message(),
-            m_startStop(startStop)
-        { }
+                Message(),
+                m_startStop(startStop) {}
     };
 
-    class SDRBASE_API MsgConfigureWSpectrumOpenClose : public Message
-    {
-		MESSAGE_CLASS_DECLARATION
+    class SDRBASE_API MsgConfigureWSpectrumOpenClose : public Message {
+    MESSAGE_CLASS_DECLARATION
 
-	public:
+    public:
         Real getOpenClose() const { return m_openClose; }
 
-        static MsgConfigureWSpectrumOpenClose* create(bool openClose) {
+        static MsgConfigureWSpectrumOpenClose *create(bool openClose) {
             return new MsgConfigureWSpectrumOpenClose(openClose);
         }
 
@@ -108,19 +108,19 @@ public:
         bool m_openClose;
 
         MsgConfigureWSpectrumOpenClose(bool openClose) :
-            Message(),
-            m_openClose(openClose)
-        {}
+                Message(),
+                m_openClose(openClose) {}
     };
 
     class SDRBASE_API MsgFrequencyZooming : public Message {
-        MESSAGE_CLASS_DECLARATION
+    MESSAGE_CLASS_DECLARATION
 
     public:
         float getFrequencyZoomFactor() const { return m_frequencyZoomFactor; }
+
         float getFrequencyZoomPos() const { return m_frequencyZoomPos; }
 
-        static MsgFrequencyZooming* create(float frequencyZoomFactor, float frequencyZoomPos) {
+        static MsgFrequencyZooming *create(float frequencyZoomFactor, float frequencyZoomPos) {
             return new MsgFrequencyZooming(frequencyZoomFactor, frequencyZoomPos);
         }
 
@@ -129,68 +129,126 @@ public:
         float m_frequencyZoomPos;
 
         MsgFrequencyZooming(float frequencyZoomFactor, float frequencyZoomPos) :
-            Message(),
-            m_frequencyZoomFactor(frequencyZoomFactor),
-            m_frequencyZoomPos(frequencyZoomPos)
-        { }
+                Message(),
+                m_frequencyZoomFactor(frequencyZoomFactor),
+                m_frequencyZoomPos(frequencyZoomPos) {}
     };
 
-    enum AvgMode
-    {
+    class RequestSnapshotMsgAbs {
+    public:
+        qint64 getSpanFrequencyInHz() const { return m_spanInputInHz; };
+    private:
+        qint64 m_spanInputInHz;
+    };
+
+    class MsgRequestUpperSnapshot : public Message, RequestSnapshotMsgAbs {
+    MESSAGE_CLASS_DECLARATION
+
+    public:
+        static MsgRequestUpperSnapshot *create(qint64 spanInputInHz) {
+            return new MsgRequestUpperSnapshot(spanInputInHz);
+        }
+
+    private:
+        qint64 m_spanInputInHz;
+
+        MsgRequestUpperSnapshot(qint64 spanInputInHz) :
+                Message(),
+                m_spanInputInHz(spanInputInHz) {}
+    };
+
+    class SDRBASE_API MsgRequestLowerSnapshot : public Message, RequestSnapshotMsgAbs {
+    MESSAGE_CLASS_DECLARATION
+
+    public:
+        static MsgRequestLowerSnapshot *create(qint64 spanInputInHz) {
+            return new MsgRequestLowerSnapshot(spanInputInHz);
+        }
+
+    private:
+        qint64 m_spanInputInHz;
+
+        MsgRequestLowerSnapshot(qint64 spanInputInHz) :
+                Message(),
+                m_spanInputInHz(spanInputInHz) {}
+    };
+
+    enum AvgMode {
         AvgModeNone,
         AvgModeMovingAvg,
         AvgModeFixedAvg,
         AvgModeMax
     };
 
-	SpectrumVis(Real scalef);
-	virtual ~SpectrumVis();
+    SpectrumVis(Real scalef);
 
-    void setGLSpectrum(GLSpectrumInterface* glSpectrum) { m_glSpectrum = glSpectrum; }
+    virtual ~SpectrumVis();
+
+    void setGLSpectrum(GLSpectrumInterface *glSpectrum) { m_glSpectrum = glSpectrum; }
+
     void setWorkspaceIndex(int index) { m_workspaceIndex = index; }
+
     int getWorkspaceIndex() const { return m_workspaceIndex; }
 
     void setScalef(Real scalef);
-    void configureWSSpectrum(const QString& address, uint16_t port);
-    const SpectrumSettings& getSettings() const { return m_settings; }
-    Real getSpecMax() const { return m_specMax / m_powFFTDiv; }
-    void getPowerSpectrumCopy(std::vector<Real>& copy) { copy.assign(m_powerSpectrum.begin(), m_powerSpectrum.end()); }
-    void getPSDCopy(std::vector<Real>& copy) const { copy.assign(m_psd.begin(), m_psd.begin() + m_settings.m_fftSize); }
-    void getZoomedPSDCopy(std::vector<Real>& copy) const;
 
-	virtual void feed(const SampleVector::const_iterator& begin, const SampleVector::const_iterator& end, bool positiveOnly);
-    void feed(const ComplexVector::const_iterator& begin, const ComplexVector::const_iterator& end, bool positiveOnly);
+    void configureWSSpectrum(const QString &address, uint16_t port);
+
+    const SpectrumSettings &getSettings() const { return m_settings; }
+
+    Real getSpecMax() const { return m_specMax / m_powFFTDiv; }
+
+    void getPowerSpectrumCopy(std::vector<Real> &copy) { copy.assign(m_powerSpectrum.begin(), m_powerSpectrum.end()); }
+
+    void getPSDCopy(std::vector<Real> &copy) const { copy.assign(m_psd.begin(), m_psd.begin() + m_settings.m_fftSize); }
+
+    void getZoomedPSDCopy(std::vector<Real> &copy) const;
+
+    virtual void
+    feed(const SampleVector::const_iterator &begin, const SampleVector::const_iterator &end, bool positiveOnly);
+
+    void feed(const ComplexVector::const_iterator &begin, const ComplexVector::const_iterator &end, bool positiveOnly);
+
     virtual void feed(const Complex *begin, unsigned int length); //!< direct FFT feed
-	void feedTriggered(const SampleVector::const_iterator& triggerPoint, const SampleVector::const_iterator& end, bool positiveOnly);
-	virtual void start();
-	virtual void stop();
+    void feedTriggered(const SampleVector::const_iterator &triggerPoint, const SampleVector::const_iterator &end,
+                       bool positiveOnly);
+
+    virtual void start();
+
+    virtual void stop();
+
     virtual void pushMessage(Message *msg);
+
     virtual QString getSinkName();
+
     MessageQueue *getInputMessageQueue() { return &m_inputMessageQueue; }
 
     void setMessageQueueToGUI(MessageQueue *queue) { m_guiMessageQueue = queue; }
+
     MessageQueue *getMessageQueueToGUI() { return m_guiMessageQueue; }
 
-    int webapiSpectrumSettingsGet(SWGSDRangel::SWGGLSpectrum& response, QString& errorMessage) const;
+    int webapiSpectrumSettingsGet(SWGSDRangel::SWGGLSpectrum &response, QString &errorMessage) const;
+
     int webapiSpectrumSettingsPutPatch(
             bool force,
-            const QStringList& spectrumSettingsKeys,
-            SWGSDRangel::SWGGLSpectrum& response, // query + response
-            QString& errorMessage);
-    int webapiSpectrumServerGet(SWGSDRangel::SWGSpectrumServer& response, QString& errorMessage) const;
-    int webapiSpectrumServerPost(SWGSDRangel::SWGSuccessResponse& response, QString& errorMessage);
-    int webapiSpectrumServerDelete(SWGSDRangel::SWGSuccessResponse& response, QString& errorMessage);
+            const QStringList &spectrumSettingsKeys,
+            SWGSDRangel::SWGGLSpectrum &response, // query + response
+            QString &errorMessage);
+
+    int webapiSpectrumServerGet(SWGSDRangel::SWGSpectrumServer &response, QString &errorMessage) const;
+
+    int webapiSpectrumServerPost(SWGSDRangel::SWGSuccessResponse &response, QString &errorMessage);
+
+    int webapiSpectrumServerDelete(SWGSDRangel::SWGSuccessResponse &response, QString &errorMessage);
 
 private:
-    class MsgConfigureScalingFactor : public Message
-    {
-		MESSAGE_CLASS_DECLARATION
+    class MsgConfigureScalingFactor : public Message {
+    MESSAGE_CLASS_DECLARATION
 
-	public:
+    public:
         MsgConfigureScalingFactor(Real scalef) :
-            Message(),
-            m_scalef(scalef)
-        {}
+                Message(),
+                m_scalef(scalef) {}
 
         Real getScalef() const { return m_scalef; }
 
@@ -198,18 +256,17 @@ private:
         Real m_scalef;
     };
 
-    class MsgConfigureWSpectrum : public Message
-    {
-		MESSAGE_CLASS_DECLARATION
+    class MsgConfigureWSpectrum : public Message {
+    MESSAGE_CLASS_DECLARATION
 
-	public:
-        MsgConfigureWSpectrum(const QString& address, uint16_t port) :
-            Message(),
-            m_address(address),
-            m_port(port)
-        {}
+    public:
+        MsgConfigureWSpectrum(const QString &address, uint16_t port) :
+                Message(),
+                m_address(address),
+                m_port(port) {}
 
-        const QString& getAddress() const { return m_address; }
+        const QString &getAddress() const { return m_address; }
+
         uint16_t getPort() const { return m_port; }
 
     private:
@@ -218,66 +275,77 @@ private:
     };
 
     bool m_running;
-	FFTEngine* m_fft;
-	FFTWindow m_window;
+    FFTEngine *m_fft;
+    FFTWindow m_window;
     unsigned int m_fftEngineSequence;
     int m_workspaceIndex;
 
-	std::vector<Complex> m_fftBuffer;
-	std::vector<Real> m_powerSpectrum; //!< displayable power spectrum
+    std::vector<Complex> m_fftBuffer;
+    std::vector<Real> m_powerSpectrum; //!< displayable power spectrum
     std::vector<Real> m_psd; //!< real PSD
 
     SpectrumSettings m_settings;
-	int m_overlapSize;
-	int m_refillSize;
-	int m_fftBufferFill;
-	bool m_needMoreSamples;
+    int m_overlapSize;
+    int m_refillSize;
+    int m_fftBufferFill;
+    bool m_needMoreSamples;
 
     float m_frequencyZoomFactor;
     float m_frequencyZoomPos;
 
-	Real m_scalef;
-	GLSpectrumInterface* m_glSpectrum;
+    Real m_scalef;
+    GLSpectrumInterface *m_glSpectrum;
     WSSpectrum m_wsSpectrum;
-	MovingAverage2D<double> m_movingAverage;
-	FixedAverage2D<double> m_fixedAverage;
-	Max2D<double> m_max;
+    MovingAverage2D<double> m_movingAverage;
+    FixedAverage2D<double> m_fixedAverage;
+    Max2D<double> m_max;
     Real m_specMax;
 
     uint64_t m_centerFrequency;
     int m_sampleRate;
 
-    uint64_t m_spanInput;
-
-	Real m_ofs;
-	Real m_powFFTDiv;
-	static const Real m_mult;
+    Real m_ofs;
+    Real m_powFFTDiv;
+    static const Real m_mult;
 
     MessageQueue m_inputMessageQueue;
     MessageQueue *m_guiMessageQueue;  //!< Input message queue to the GUI
 
-	QRecursiveMutex m_mutex;
+    QRecursiveMutex m_mutex;
 
     void processFFT(bool positiveOnly);
+
     void setRunning(bool running) { m_running = running; }
-    void applySettings(const SpectrumSettings& settings, bool force = false);
-  	bool handleMessage(const Message& message);
+
+    void applySettings(const SpectrumSettings &settings, bool force = false);
+
+    bool handleMessage(const Message &message);
+
     void handleConfigureDSP(uint64_t centerFrequency, int sampleRate);
+
     void handleScalef(Real scalef);
+
     void handleWSOpenClose(bool openClose);
-    void handleConfigureWSSpectrum(const QString& address, uint16_t port);
 
-    static void webapiFormatSpectrumSettings(SWGSDRangel::SWGGLSpectrum& response, const SpectrumSettings& settings);
+    void handleConfigureWSSpectrum(const QString &address, uint16_t port);
+
+    static void webapiFormatSpectrumSettings(SWGSDRangel::SWGGLSpectrum &response, const SpectrumSettings &settings);
+
     static void webapiUpdateSpectrumSettings(
-            SpectrumSettings& settings,
-            const QStringList& spectrumSettingsKeys,
-            SWGSDRangel::SWGGLSpectrum& response);
+            SpectrumSettings &settings,
+            const QStringList &spectrumSettingsKeys,
+            SWGSDRangel::SWGGLSpectrum &response);
 
-    Complex *transformToFFT(Complex* data);
+    Complex *transformToFFT(Complex *data);
+
     DisplayableData extractDisplayableFFT(const Complex *fftResult, bool positiveOnly);
+
     DisplayableData extractDisplayableFFTAvgNone(const Complex *fft, bool positiveOnly);
+
     DisplayableData extractDisplayableFFTAvgMoving(const Complex *fft, bool positiveOnly);
+
     DisplayableData extractDisplayableFFTAvgFixed(const Complex *fft, bool positiveOnly);
+
     DisplayableData extractDisplayableFFTAvgMax(const Complex *fft, bool positiveOnly);
 
     std::vector<Complex> m_lowerSnapshotBuffer;
@@ -285,11 +353,16 @@ private:
     std::vector<Complex> m_upperSnapshotBuffer;
 
     qint64 getBandwidth();
+
     qint64 getSpanInput();
+
     void requestUpperSnapshot();
+
     void requestLowerSnapshot();
+
 private slots:
-	void handleInputMessages();
+
+    void handleInputMessages();
 };
 
 #endif // INCLUDE_SPECTRUMVIS_H

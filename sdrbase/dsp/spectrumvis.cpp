@@ -39,6 +39,10 @@ MESSAGE_CLASS_DEFINITION(SpectrumVis::MsgStartStop, Message)
 
 MESSAGE_CLASS_DEFINITION(SpectrumVis::MsgFrequencyZooming, Message)
 
+MESSAGE_CLASS_DEFINITION(SpectrumVis::MsgRequestUpperSnapshot, Message)
+
+MESSAGE_CLASS_DEFINITION(SpectrumVis::MsgRequestLowerSnapshot, Message)
+
 const Real SpectrumVis::m_mult = (10.0f / log2(10.0f));
 
 SpectrumVis::SpectrumVis(Real scalef) :
@@ -58,7 +62,6 @@ SpectrumVis::SpectrumVis(Real scalef) :
         m_specMax(0.0f),
         m_centerFrequency(0),
         m_sampleRate(48000),
-        m_spanInput(0),
         m_ofs(0),
         m_powFFTDiv(1.0),
         m_guiMessageQueue(nullptr),
@@ -395,13 +398,21 @@ qint64 SpectrumVis::getBandwidth() {
 }
 
 void SpectrumVis::requestLowerSnapshot() {
-    // fixme : dummy
-    //  modify center frequency down and send message to setting
+    // stop spectrum vis
+    stop();
+
+    // push request message
+    auto msg = MsgRequestLowerSnapshot::create(m_settings.m_spanInput * 1e3);
+    this->pushMessage(msg);
 }
 
 void SpectrumVis::requestUpperSnapshot() {
-    // fixme : dummy
-    //  modify center frequency up and send message to setting
+    // stop spectrum vis
+    stop();
+
+    // push request message
+    auto msg = MsgRequestUpperSnapshot::create(m_settings.m_spanInput * 1e3);
+    this->pushMessage(msg);
 }
 
 void SpectrumVis::processFFT(bool positiveOnly) {
