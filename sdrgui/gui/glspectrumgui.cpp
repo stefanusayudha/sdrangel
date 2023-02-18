@@ -207,8 +207,7 @@ void GLSpectrumGUI::displaySettings()
     ui->averagingMode->blockSignals(true);
     ui->linscale->blockSignals(true);
 
-    ui->spanInput->setToolTip("Span Input in Mhz");
-    ui->spanInput->setValue(int (m_settings.m_spanInput / 10e5));
+    ui->spanInput->setValue(int (m_settings.m_spanInput / 1e2));
 
     ui->fftWindow->setCurrentIndex(m_settings.m_fftWindow);
 
@@ -1078,7 +1077,7 @@ void GLSpectrumGUI::on_measure_clicked(bool checked)
 }
 
 void GLSpectrumGUI::on_spanInput_valueChanged(int arg1){
-    m_settings.m_spanInput = qint64 (arg1 * 10e5);
+    m_settings.m_spanInput = qint64 (arg1 * 10e2);
     applySettings();
 }
 
